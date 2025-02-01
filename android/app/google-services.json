@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "351272618438",
+    "firebase_url": "https://gherass-adc21-default-rtdb.firebaseio.com",
+    "project_id": "gherass-adc21",
+    "storage_bucket": "gherass-adc21.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351272618438:android:8976ff7c1be44d805ecac7",
+        "android_client_info": {
+          "package_name": "com.example.gherass"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiNQeqVQGIWB1Bs1gxugexjYM5xAlAFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351272618438:android:46e9970109b2b85d5ecac7",
+        "android_client_info": {
+          "package_name": "com.example.ghereass"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiNQeqVQGIWB1Bs1gxugexjYM5xAlAFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351272618438:android:cc96fba04d2d180c5ecac7",
+        "android_client_info": {
+          "package_name": "com.example.ios"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiNQeqVQGIWB1Bs1gxugexjYM5xAlAFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

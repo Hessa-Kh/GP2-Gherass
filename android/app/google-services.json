@@ -1,0 +1,83 @@
+{
+  "project_info": {
+    "project_number": "351272618438",
+    "firebase_url": "https://gherass-adc21-default-rtdb.firebaseio.com",
+    "project_id": "gherass-adc21",
+    "storage_bucket": "gherass-adc21.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351272618438:android:aa69ce5e12c05aa45ecac7",
+        "android_client_info": {
+          "package_name": "com.leadergroup.gherass"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "351272618438-daonnempd0m63rf805k9seicv29unlp1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiNQeqVQGIWB1Bs1gxugexjYM5xAlAFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "351272618438-daonnempd0m63rf805k9seicv29unlp1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "351272618438-2vpmr6acagfiou6lfneijsh1fhis812p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gherass"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:351272618438:android:eced0103907115715ecac7",
+        "android_client_info": {
+          "package_name": "com.leadergroup.gherass.gherass"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "351272618438-daonnempd0m63rf805k9seicv29unlp1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAiNQeqVQGIWB1Bs1gxugexjYM5xAlAFNU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "351272618438-daonnempd0m63rf805k9seicv29unlp1.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "351272618438-2vpmr6acagfiou6lfneijsh1fhis812p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.gherass"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

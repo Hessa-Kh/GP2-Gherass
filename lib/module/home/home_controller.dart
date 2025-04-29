@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -100,54 +101,48 @@ class HomeViewController extends BaseController {
   }
 
   getData() async {
-  try {
-    LoadingIndicator.loadingWithBackgroundDisabled();
-    numberFormating();
-    isFarmListVisible.value = false;
-
-    final results = await BaseController.firebaseAuth.getCurrentUserInfoById(
-      BaseController.firebaseAuth.getUid(),
-      logInType.value,
-    );
-    farmRatings.value =
-        double.tryParse(results!["farm_ratings"].toString()) ?? 0.0;
-    userName.value = results["username"] ?? "";
-    phoneNumber.value = results["phoneNumber"] ?? "";
-    farmName.value = results["farmName"] ?? "";
-    location.value = results["farmLocation"] ?? "";
-    farmLogo.value = results["farm_logo"] ?? "";
-
-    final categoryListResponse =
-        await BaseController.firebaseAuth.getCategoryList();
-    var allProducts = {"name": "All Products"};
-    if (categoryListResponse != null) {
-      categoryList.assignAll(
-        categoryListResponse.cast<Map<String, dynamic>>(),
+    try {
+      LoadingIndicator.loadingWithBackgroundDisabled();
+      numberFormating();
+      isFarmListVisible.value = false;
+      final results = await BaseController.firebaseAuth.getCurrentUserInfoById(
+        BaseController.firebaseAuth.getUid(),
+        logInType.value,
       );
-      categoryList.add(allProducts);
-    }
+      farmRatings.value =
+          double.tryParse(results!["farm_ratings"].toString()) ?? 0.0;
+      userName.value = results?["username"] ?? "";
+      phoneNumber.value = results?["phoneNumber"] ?? "";
+      farmName.value = results?["farmName"] ?? "";
+      location.value = results?["farmLocation"] ?? "";
+      farmLogo.value = results?["farm_logo"] ?? "";
+      final categoryListResponse =
+          await BaseController.firebaseAuth.getCategoryList();
+      var allProducts = {"name": "All Products"};
+      if (categoryListResponse != null) {
+        categoryList.assignAll(
+          categoryListResponse.cast<Map<String, dynamic>>(),
+        );
+        categoryList.add(allProducts);
+      }
+      final farmListResponse = await BaseController.firebaseAuth.getFarmsList();
+      farmsList.addAll(farmListResponse[0]);
 
-    final farmListResponse =
-        await BaseController.firebaseAuth.getFarmsList();
-    farmsList.addAll(farmListResponse[0]);
-    farmerIdList.addAll(farmListResponse[1]);
-
-    if (logInType.value == "driver") {
-      await fetchDriverOrders();
-    } else {
+      farmerIdList.addAll(farmListResponse[1]);
       await fetchAndAttachProductsToFarms();
+      // getDistance();
       filterFarmersByCategoryAndSortByDistance("All Products");
       calculateAllDistances();
+      fetchOrdeStatusList();
+      if (logInType.value == "driver") {
+        await fetchDriverOrders();
+      }
+    } catch (e) {
+      LoadingIndicator.stopLoading();
+    } finally {
+      LoadingIndicator.stopLoading();
     }
-
-    fetchOrdeStatusList();
-  } catch (e) {
-    LoadingIndicator.stopLoading();
-  } finally {
-    LoadingIndicator.stopLoading();
   }
-}
-
 
   Future<List<Map<String, dynamic>>> fetchAndAttachProductsToFarms() async {
     LoadingIndicator.loadingWithBackgroundDisabled();

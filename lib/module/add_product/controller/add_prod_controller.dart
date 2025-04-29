@@ -92,16 +92,7 @@ class AddProdController extends BaseController {
       return;
     }
 
-    if (productType.text.isEmpty) {
-      Get.snackbar(
-        "Validation Error",
-        "Product type cannot be empty",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.lightRose,
-      );
-      LoadingIndicator.stopLoading();
-      return;
-    }
+    
 
     if (productDescription.text.isEmpty) {
       Get.snackbar(
@@ -221,16 +212,6 @@ class AddProdController extends BaseController {
       return;
     }
 
-    if (productType.text.isEmpty) {
-      Get.snackbar(
-        "Validation Error",
-        "Product type cannot be empty",
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppTheme.lightRose,
-      );
-      LoadingIndicator.stopLoading();
-      return;
-    }
 
     if (productDescription.text.isEmpty) {
       Get.snackbar(

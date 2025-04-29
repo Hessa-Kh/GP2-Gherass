@@ -2,83 +2,66 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>CFBundleDevelopmentRegion</key>
-    <string>$(DEVELOPMENT_LANGUAGE)</string>
-    <key>CFBundleDisplayName</key>
-    <string>Gherass</string>
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
-    <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
-    <key>CFBundleName</key>
-    <string>gherass</string>
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
-    <key>CFBundleShortVersionString</key>
-    <string>$(FLUTTER_BUILD_NAME)</string>
-    <key>CFBundleSignature</key>
-    <string>????</string>
-    <key>CFBundleVersion</key>
-    <string>$(FLUTTER_BUILD_NUMBER)</string>
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
-    <key>UIMainStoryboardFile</key>
-    <string>Main</string>
-
-    <!-- Supported Interface Orientations -->
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
-
-    <!-- Supported Interface Orientations for iPad -->
-    <key>UISupportedInterfaceOrientations~ipad</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
-
-    <key>UIBackgroundModes</key>
-    <array>
-        <string>remote-notification</string>
-    </array>
-    <key>FirebaseAppDelegateProxyEnabled</key>
-    <true/>
-
-    <!-- Permissions Usage Descriptions -->
-    <key>NSDocumentsFolderUsageDescription</key>
-    <string>This app needs access to your documents folder.</string>
-    
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app requires your location to provide better nearby services.</string>
-    
-    <key>NSLocationAlwaysUsageDescription</key>
-    <string>This app uses your location in the background for enhanced tracking features.</string>
-    
-
-    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>This app needs access to your location even when the app is in the background.</string>
-
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>This app requires access to your photos for storage features.</string>
-
-    <key>NSUserNotificationUsageDescription</key>
-    <string>This app uses notifications to keep you updated on important events.</string>
-
-    <!-- Flutter / App Specific Config -->
-    <key>FLTEnableImpeller</key>
-    <false/>
-    <key>CADisableMinimumFrameDurationOnPhone</key>
-    <true/>
-    <key>UIApplicationSupportsIndirectInputEvents</key>
-    <true/>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Gherass</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>gherass</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>FLTEnableImpeller</key>
+	<false/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>NSDocumentsFolderUsageDescription</key>
+	<string>This app needs access to your documents folder.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to your location even when the app is in the background.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app uses your location in the background for enhanced tracking features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app requires your location to provide better nearby services.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app requires access to your photos for storage features.</string>
+	<key>NSUserNotificationUsageDescription</key>
+	<string>This app uses notifications to keep you updated on important events.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 </dict>
 </plist>

@@ -25,28 +25,7 @@ class HomeWidgets {
         !controller.hasShownDialog.value) {
       Future.delayed(Duration.zero, () {
         controller.hasShownDialog.value = true;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder:
-              (dialogContext) => showLocationSelectionDialog(
-                title: 'Select Location'.tr,
-                textController: controller.locationController,
-                suffixIcon: GestureDetector(
-                  onTap: () {
-                    controller.openGoogleMaps();
-                  },
-                  child: Icon(Icons.location_on, color: Colors.red),
-                ),
-                onSave: () async {
-                  bool success = await controller.saveLocation();
-                  if (success) {
-                    Navigator.of(dialogContext).pop();
-                    controller.hasShownDialog.value = false;
-                  }
-                },
-              ),
-        );
+        
       });
     }
 

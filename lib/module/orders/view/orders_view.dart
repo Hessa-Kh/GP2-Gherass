@@ -4,7 +4,6 @@ import 'package:gherass/module/orders/controller/orders_controller.dart';
 import 'package:gherass/module/orders/view/orders_widgets.dart';
 import 'package:gherass/widgets/appBar.dart';
 
-
 class OrdersView extends StatelessWidget {
   final bool? showBackButton;
 
@@ -12,7 +11,7 @@ class OrdersView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var controller = Get.find<OrdersController>();
+    var controller = Get.put(OrdersController());
     return Obx(
       () => Scaffold(
         appBar: CommonAppBar(
@@ -31,12 +30,12 @@ class OrdersView extends StatelessWidget {
         ),
         body: RefreshIndicator(
           onRefresh: () async {
-            controller.onInit();
+            controller.getOrders();
           },
           child:
               controller.pageName.value == "detailPage"
                   ? OrdersWidgets().orderDetailsWidget()
-                  : OrdersWidgets().ordersListWidget(context),
+                  : OrdersWidgets().ordersListWidget(context,showBackButton),
         ),
       ),
     );

@@ -85,10 +85,6 @@ class LoginWidgets {
             ),
           ),
           SizedBox(height: 10),
-          Text(
-            "Forgot password?".tr,
-            style: TextStyle(color: AppTheme.primaryColor),
-          ),
           SizedBox(height: 20),
           SizedBox(
             width: double.infinity,

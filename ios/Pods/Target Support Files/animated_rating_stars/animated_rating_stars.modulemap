@@ -1,0 +1,6 @@
+framework module animated_rating_stars {
+  umbrella header "animated_rating_stars-umbrella.h"
+
+  export *
+  module * { export * }
+}

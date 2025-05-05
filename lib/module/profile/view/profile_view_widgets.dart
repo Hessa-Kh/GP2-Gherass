@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gherass/module/orders/controller/orders_controller.dart';
 import 'package:gherass/module/profile/controller/profile_controller.dart';
 import 'package:gherass/theme/styles.dart';
 
@@ -388,7 +389,7 @@ class ProfileViewWidgets {
             SizedBox(height: 20),
             InkWell(
               onTap: () {
-                Get.to(OrdersView(showBackButton: true));
+                Get.toNamed(Routes.ordersPage);
               },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,

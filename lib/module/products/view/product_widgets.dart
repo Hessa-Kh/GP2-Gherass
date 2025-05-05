@@ -1,8 +1,7 @@
 import 'dart:convert';
-import 'dart:developer';
-
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating/flutter_rating.dart';
 import 'package:get/get.dart';
 import 'package:gherass/module/cart/controller/my_cart_controller.dart';
 import 'package:gherass/module/cart/model/cart_model.dart';
@@ -143,21 +142,29 @@ class ProductWidgets {
                       ],
                     ),
                     SizedBox(height: 4),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        InventoryWidget().ratingWidget(
-                          initialRating:
-                              double.tryParse(
-                                controller.farmData["farm_ratings"].toString(),
-                              ) ??
-                              0.0,
-                          onRatingChanged: (v) {},
-                          showRating: true,
-                          showPercentage: false,
-                          isReadOnly: true,
-                        ),
-                      ],
+                    Obx(
+                      () => Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          StarRating(
+                            rating:
+                                double.tryParse(
+                                  controller.farmRating.value.toString(),
+                                ) ??
+                                0.0,
+                            allowHalfRating: true,
+                            color: Colors.yellow.shade700,
+                            onRatingChanged: (rating) {},
+                          ),
+                          Text(
+                            controller.farmRating.value ?? "",
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
@@ -271,11 +278,24 @@ class ProductWidgets {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Obx(
-            () => GridView.builder(
+          child: Obx(() {
+            final products = controller.farmerProducts;
+            if (products.isEmpty) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40.0),
+                child: Center(
+                  child: Text(
+                    "No products available".tr,
+                    style: Styles.boldTextView(16, Colors.blueGrey),
+                  ),
+                ),
+              );
+            }
+
+            return GridView.builder(
               shrinkWrap: true,
               physics: BouncingScrollPhysics(),
-              itemCount: controller.farmerProducts.length,
+              itemCount: products.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 0.8,
@@ -290,23 +310,18 @@ class ProductWidgets {
                             ? Get.find<ProductController>()
                             : Get.put(ProductController());
 
-                    prodController.setSelectedProduct(
-                      controller.farmerProducts[index],
-                    );
+                    prodController.setSelectedProduct(products[index]);
 
                     Get.toNamed(
                       Routes.productDetails,
-                      arguments: [
-                        controller.farmerId.value,
-                        controller.farmerProducts[index],
-                      ],
+                      arguments: [controller.farmerId.value, products[index]],
                     );
                   },
-                  child: productCard(controller.farmerProducts[index]),
+                  child: productCard(products[index]),
                 );
               },
-            ),
-          ),
+            );
+          }),
         ),
       ],
     );
@@ -314,6 +329,19 @@ class ProductWidgets {
 
   Widget eventSectionWidget() {
     List farmData = controller.farmerEvents.toList();
+
+    if (farmData.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
+        child: Center(
+          child: Text(
+            "No events available".tr,
+            style: Styles.boldTextView(18, Colors.blueGrey),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, right: 16.0),
       child: ListView.builder(
@@ -498,16 +526,18 @@ class ProductWidgets {
             ],
           ),
           const SizedBox(height: 40),
-          infoCard(controller.farmerEventItem.first["name"].toString()),
+          infoCard(controller.farmerEventItem.first["name"].toString(), context,),
           const SizedBox(height: 10),
           infoCard(
             'Event date and time',
+            context,
             subtitle: controller.farmerEventItem.first["start_date"].toString(),
             icon: Icons.event,
           ),
           const SizedBox(height: 10),
           infoCard(
             'Event details',
+            context,
             subtitle:
                 controller.farmerEventItem.first["description"].toString(),
             icon: Icons.info_outline,
@@ -515,6 +545,7 @@ class ProductWidgets {
           const SizedBox(height: 10),
           infoCard(
             'Location',
+            context,
             subtitle: controller.farmerEventItem.first["location"].toString(),
             icon: Icons.location_on_outlined,
             isLink: true,
@@ -562,7 +593,8 @@ class ProductWidgets {
   }
 
   Widget infoCard(
-    String title, {
+    String title,
+      BuildContext context,{
     String? subtitle,
     IconData? icon,
     bool isLink = false,
@@ -598,16 +630,20 @@ class ProductWidgets {
                   onTap: () {
                     controller.openInGoogleMaps();
                   },
-                  child: Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.hintDarkGray,
-                      decoration:
-                          isLink
-                              ? TextDecoration.underline
-                              : TextDecoration.none,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width/1.3,
+                    child: Text(
+                      subtitle,
+                      softWrap: true,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.hintDarkGray,
+                        decoration:
+                            isLink
+                                ? TextDecoration.underline
+                                : TextDecoration.none,
+                      ),
                     ),
                   ),
                 ),
@@ -619,14 +655,28 @@ class ProductWidgets {
   }
 
   Widget reviewSectionWidget() {
+    List ratings = controller.farmerRatings;
+
+    if (ratings.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
+        child: Center(
+          child: Text(
+            "No reviews yet".tr,
+            style: Styles.boldTextView(18, Colors.blueGrey),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 0),
       child: ListView.builder(
         shrinkWrap: true,
         physics: BouncingScrollPhysics(),
-        itemCount: controller.farmerRatings.length,
+        itemCount: ratings.length,
         itemBuilder: (context, index) {
-          return reviewCard(controller.farmerRatings[index]);
+          return reviewCard(ratings[index]);
         },
       ),
     );
@@ -913,7 +963,7 @@ class ProductWidgets {
             unselectedLabelColor: Colors.black,
             indicatorColor: AppTheme.lightPurple,
             labelStyle: Styles.normalTextStyle(AppTheme.lightPurple, 14),
-            tabs: [Tab(text: 'Description'), Tab(text: 'Nutritional Values')],
+            tabs: [Tab(text: 'Description')],
           ),
           Divider(color: AppTheme.hintDarkGray, thickness: 0.5),
           const SizedBox(height: 8),
@@ -923,10 +973,6 @@ class ProductWidgets {
               children: [
                 Text(
                   controller.selectedProduct['description']?.toString() ?? "",
-                  style: Styles.normalTextStyle(AppTheme.hintDarkGray, 13),
-                ),
-                Text(
-                  'Nutritional values go here...',
                   style: Styles.normalTextStyle(AppTheme.hintDarkGray, 13),
                 ),
               ],
@@ -1022,14 +1068,29 @@ class ProductWidgets {
                   ),
                   GestureDetector(
                     onTap: () {
+                      int currentQty = controller.productQuantity.value;
+                      int availableQty = controller.selectedProduct['qty'];
+
+                      if (currentQty + 1 > availableQty) {
+                        Get.snackbar(
+                          "Cart",
+                          "Cannot add more. Only $availableQty item(s) available.",
+                          snackPosition: SnackPosition.BOTTOM,
+                          backgroundColor: AppTheme.errorTextColor,
+                        );
+                        return;
+                      }
+
                       controller.productQuantity.value++;
+
                       Get.snackbar(
-                        'Added',
-                        '${controller.selectedProduct['qty'].toString()} quantity added',
+                        "Cart",
+                        "${controller.productQuantity.value} item(s) updated in the cart.",
                         snackPosition: SnackPosition.BOTTOM,
                         backgroundColor: AppTheme.successTextColor,
                       );
                     },
+
                     child: Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -1056,9 +1117,15 @@ class ProductWidgets {
                   ),
                 ),
                 onPressed: () {
-                  //fix001
                   if (controller.selectedProduct['name'] != null) {
-                    controller.productQuantity.value++;
+                    if (controller.productQuantity.value + 1 >
+                        controller.selectedProduct['qty']) {
+                      controller.productQuantity.value =
+                          controller.selectedProduct['qty'];
+                    }
+                    if (controller.productQuantity.value == 0) {
+                      controller.productQuantity.value++;
+                    }
                     Product product = Product(
                       id: "",
                       name: controller.selectedProduct['name'],
@@ -1085,8 +1152,6 @@ class ProductWidgets {
                       farmerName: controller.farmerName.value,
                       totalQty: controller.selectedProduct['qty'],
                     );
-                    log(controller.farmerId.value);
-                    log(controller.farmerName.value);
 
                     if (!Get.isRegistered<MyCartController>()) {
                       Get.put(MyCartController());

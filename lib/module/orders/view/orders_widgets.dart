@@ -13,8 +13,7 @@ import '../../../util/image_util.dart';
 
 class OrdersWidgets {
   var controller = Get.find<OrdersController>();
-
-  Widget ordersListWidget(BuildContext context) {
+  Widget ordersListWidget(BuildContext context,showOrdersHistory) {
     return controller.logInType.value.contains("farmer")
         ? controller.ordersList.isEmpty
             ? Center(
@@ -27,8 +26,7 @@ class OrdersWidgets {
               ),
             )
             : ListView.builder(
-              //customer orders
-              itemCount: controller.ordersList.length ?? 0,
+              itemCount: controller.ordersList.length,
               itemBuilder: (context, index) {
                 return InkWell(
                   onTap: () {
@@ -43,33 +41,38 @@ class OrdersWidgets {
         : controller.logInType.value.contains("driver")
         ? Obx(
           () =>
-              controller.ordersList.isNotEmpty
+          (showOrdersHistory==true?controller.pastOrders.isNotEmpty:controller.ordersList.isNotEmpty)
                   ? ListView.builder(
-                    itemCount: controller.ordersList.length,
+                    itemCount: showOrdersHistory==true?controller.pastOrders.length:controller.ordersList.length,
                     itemBuilder: (context, index) {
                       return InkWell(
-                        onTap: () {
-                          controller.navigateToDetailsPage(
-                            controller.ordersList[index],
-                          );
+                        onTap: () async{
+                          if(showOrdersHistory==true){
+                            controller.navigateToDetailsPage(
+                              controller.pastOrders[index],
+                            );
+                          }else{
+                            controller.navigateToDetailsPage(
+                              controller.ordersList[index],
+                            );
+                          }
                         },
-                        child: driverOrderItem(index),
+                        child: driverOrderItem(showOrdersHistory==true?controller.pastOrders[index]
+                            :controller.ordersList[index]),
                       );
                     },
                   )
-                  : Container(),
+                  : Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Text(
+                        "No orders found ".tr,
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
+                      ),
+                    ),
+                  ),
         )
-        : ListView.builder(
-          itemCount: controller.ordersList.length ?? 0,
-          itemBuilder: (context, index) {
-            return InkWell(
-              onTap: () {
-                controller.navigateToDetailsPage(controller.ordersList[index]);
-              },
-              child: driverOrderItem(index),
-            );
-          },
-        );
+        : SizedBox();
   }
 
   Widget farmerOrderItem(int index) {
@@ -159,7 +162,7 @@ class OrdersWidgets {
     );
   }
 
-  Widget driverOrderItem(int index) {
+  Widget driverOrderItem(orderData) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 20),
       child: Container(
@@ -185,22 +188,22 @@ class OrdersWidgets {
                 customRow(
                   title: "Order number:".tr,
                   subTitle:
-                      " #${controller.ordersList[index]["orderID"].toString()}",
+                      " #${orderData["orderID"].toString()}",
                 ),
                 customRow(
                   title: "Address:".tr,
                   subTitle:
-                      " ${controller.ordersList[index]["delivery_address"]["address"].toString()}",
+                      " ${orderData["delivery_address"]["address"].toString()}",
                 ),
                 customRow(
                   title: "Date:".tr,
                   subTitle:
-                      " ${controller.covertDateFormat(controller.ordersList[index]["date"])[0]}",
+                      " ${controller.covertDateFormat(orderData["date"])[0]}",
                 ),
                 customRow(
                   title: "Time:".tr,
                   subTitle:
-                      " ${controller.covertDateFormat(controller.ordersList[index]["date"])[1]}",
+                      " ${controller.covertDateFormat(orderData["date"])[1]}",
                 ),
               ],
             ),
@@ -274,8 +277,7 @@ class OrdersWidgets {
                             ),
                             SizedBox(width: 10),
                             Text(
-                              controller.customerInfo["username"] ??
-                                  "Mohammad saad",
+                              controller.customerInfo["username"] ?? "",
                               style: Styles.boldTextView(13, AppTheme.black),
                             ),
                           ],
@@ -316,8 +318,7 @@ class OrdersWidgets {
                               child: Text(
                                 controller.customerAddress.value,
                                 style: Styles.boldTextView(13, AppTheme.black),
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
+                                softWrap: true,
                               ),
                             ),
                           ],
@@ -396,9 +397,15 @@ class OrdersWidgets {
                                 ),
                               ),
                               SizedBox(width: 10),
-                              Text(
-                                controller.farmerInfo["farmLocation"] ?? "",
-                                style: Styles.boldTextView(13, AppTheme.black),
+                              Expanded(
+                                child: Text(
+                                  controller.farmerInfo["farmLocation"] ?? "",
+                                  style: Styles.boldTextView(
+                                    13,
+                                    AppTheme.black,
+                                  ),
+                                  softWrap: true,
+                                ),
                               ),
                             ],
                           ),
@@ -445,12 +452,19 @@ class OrdersWidgets {
                       itemBuilder: (context, index) {
                         return Row(
                           children: [
-                            controller.ordersDetailsList[index]["image"]
-                                        .toString() !=
-                                    "null"
+                            controller
+                                    .getProductImage(
+                                      controller
+                                          .ordersDetailsList[index]["productId"],
+                                    )
+                                    .isNotEmpty
                                 ? Image.memory(
                                   base64Decode(
-                                    controller.ordersDetailsList[index]["image"]
+                                    controller
+                                        .getProductImage(
+                                          controller
+                                              .ordersDetailsList[index]["productId"],
+                                        )
                                         .toString(),
                                   ),
                                   height: 20,
@@ -488,7 +502,7 @@ class OrdersWidgets {
                   ),
                   SizedBox(width: 10),
                   Text(
-                    "Total Amount: ${controller.selectedOrder['totalAmount']  ?? ""} SAR",
+                    "Total Amount: ${controller.selectedOrder['totalAmount'] ?? ""} SAR",
                     style: Styles.semiBoldTextView(13, AppTheme.black),
                   ),
                   SizedBox(height: 10),
@@ -511,13 +525,16 @@ class OrdersWidgets {
                         ),
                         SizedBox(width: 10),
                         Text(
-                          "${controller.formatDateTime(controller.selectedOrder["deliveryDate"]??"")} ${controller.selectedOrder["time"]??""}",
+                          "${controller.formatDateTime(controller.selectedOrder["deliveryDate"] ?? "")} ${controller.selectedOrder["time"] ?? ""}",
                           style: Styles.boldTextView(13, AppTheme.black),
                         ),
                       ],
                     ),
                   ),
-                  Text("Status:".tr, style: Styles.boldTextView(13, AppTheme.black)),
+                  Text(
+                    "Status:".tr,
+                    style: Styles.boldTextView(13, AppTheme.black),
+                  ),
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Row(

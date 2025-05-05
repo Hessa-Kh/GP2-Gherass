@@ -22,6 +22,7 @@ class Routes {
   static const String deliverylocation = "/deliverylocation";
   static const String addEventPage = "/addEventPage";
   static const String editEventPage = "/editEventPage";
+  static const String countDownTimer = "/countDownTimer";
   static const String vehicleInfo = "/vehicleInfo";
   static const String orderDetailDriverPage = "/orderDetailDriverPage";
 }

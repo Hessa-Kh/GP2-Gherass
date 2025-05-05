@@ -1,7 +1,9 @@
-import 'dart:developer';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gherass/baseclass/basecontroller.dart';
+import 'package:gherass/helper/routes.dart';
 import 'package:gherass/module/cart/model/cart_model.dart';
+import 'package:gherass/module/cart/view/my_cart_widgets.dart';
 import 'package:gherass/theme/app_theme.dart';
 import 'package:gherass/util/constants.dart';
 import 'package:gherass/widgets/loader.dart';
@@ -22,6 +24,8 @@ class MyCartController extends GetxController {
   var userName = "".obs;
   var orderId = "".obs;
   RxString farmerId = "".obs;
+  RxString selectedPaymentMethod = "ApplePay".obs;
+  RxBool isLoadingAddress = true.obs;
 
   RxList<Product> myCartList = <Product>[].obs;
 
@@ -44,6 +48,13 @@ class MyCartController extends GetxController {
     }
   }
 
+  Future<int> fetchTotalQty(Product product) async {
+    return await BaseController.firebaseAuth.getProductTotalQty(
+      product.farmerId,
+      product.prodId,
+    );
+  }
+
   void getCartProducts(String farmerId) async {
     myCartList.clear();
 
@@ -57,15 +68,17 @@ class MyCartController extends GetxController {
       for (var product in response) {
         if (!uniqueProductMap.containsKey(product.prodId)) {
           uniqueProductMap[product.prodId] = product;
-          log("NO duplicate prodId: ${product.prodId}");
         } else {
           duplicateProdIds.add(product);
-          log("Found duplicate prodId: ${product.prodId}");
         }
       }
 
       myCartList.value = uniqueProductMap.values.toList();
+
       myCartList.refresh();
+      for (var prod in myCartList) {
+        validateQuantity(prod);
+      }
 
       for (var product in duplicateProdIds) {
         await BaseController.firebaseAuth.removeFromCart(
@@ -76,10 +89,9 @@ class MyCartController extends GetxController {
           "Removed duplicate product with prodId: ${product.prodId} from backend.",
         );
       }
-
       selectedDate.value = "";
       selectedTime.value = "";
-    
+
       getCustomerDeliveryAddress();
     } catch (e) {
       LoadingIndicator.stopLoading();
@@ -112,16 +124,16 @@ class MyCartController extends GetxController {
             ),
       );
 
-      log(
+      print(
         "Adding product -> id: ${product.id} | prodId: ${product.prodId} | name: ${product.name}",
       );
 
       if (existingProduct.id.isEmpty) {
-        log("New product from farmer: ${product.farmerId}");
+        print("New product from farmer: ${product.farmerId}");
         myCartList.add(product);
         await BaseController.firebaseAuth.addProductsToCart([product.toJson()]);
       } else {
-        log("Updating existing product: ${product.prodId}");
+        print("Updating existing product: ${product.prodId}");
         existingProduct.qty += product.qty;
         myCartList.refresh();
         await updateProductInCart(existingProduct);
@@ -144,28 +156,53 @@ class MyCartController extends GetxController {
     }
   }
 
+  void validateQuantity(Product product) async {
+    print('Validating quantity...');
+    print('product.qty : ${product.qty}');
+    print('Product name: ${product.name}');
+
+    // Step 1: Fetch current total available quantity from Firestore
+    final totalQty = await fetchTotalQty(product);
+    print('Total available qty (from Firestore): $totalQty');
+
+    // Step 2: Cap product.qty to totalQty if it exceeds it
+    if (product.qty > totalQty) {
+      print('Qty exceeds totalQty. Adjusting...');
+      product.qty = totalQty;
+    } else {
+      print('Qty is within available stock.');
+    }
+
+    // Step 3: Update the adjusted product in Firebase (e.g., in cart)
+    await BaseController.firebaseAuth.updateProductInCart([product.toJson()]);
+
+    print('Final qty sent to Firebase: ${product.qty}');
+  }
+
   void updateQuantity(Product product, int quantity) async {
     LoadingIndicator.loadingWithBackgroundDisabled();
+
     try {
       var item = myCartList.firstWhere((p) => p.id == product.id);
-      print('product:${product.id}');
+      print('product: ${product.id}');
 
-      // if (quantity > product.totalQty) {
-      //   Get.snackbar(
-      //     "Cart",
-      //     "Cannot update quantity. Only ${product.totalQty.toString()} items are available.",
-      //     snackPosition: SnackPosition.BOTTOM,
-      //     backgroundColor: AppTheme.errorTextColor,
-      //   );
+      final totalQty = await fetchTotalQty(product);
 
-      //   quantity = product.totalQty;
-      // }
+      if (quantity > totalQty) {
+        Get.snackbar(
+          "Cart",
+          "Cannot update quantity. Only $totalQty items are available.",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: AppTheme.errorTextColor,
+        );
+        LoadingIndicator.stopLoading();
+        return;
+      }
 
       if (quantity > 0) {
-        print(product.id);
         item.qty = quantity;
-        myCartList.refresh();
         await updateProductInCart(item);
+
         Get.snackbar(
           "Cart",
           "Quantity updated",
@@ -175,9 +212,10 @@ class MyCartController extends GetxController {
       } else {
         removeFromCart(item);
       }
+
+      myCartList.refresh();
       getCartProducts(item.farmerId);
     } catch (e) {
-      LoadingIndicator.stopLoading();
       print("Error updating quantity: $e");
     } finally {
       LoadingIndicator.stopLoading();
@@ -208,7 +246,7 @@ class MyCartController extends GetxController {
 
       myCartList.removeWhere((item) => item.id == product.id);
       myCartList.refresh();
-        } catch (e) {
+    } catch (e) {
       LoadingIndicator.stopLoading();
       print("Error removing product from cart: $e");
     } finally {
@@ -225,58 +263,55 @@ class MyCartController extends GetxController {
   Future<bool> postOrderComplete() async {
     try {
       LoadingIndicator.loadingWithBackgroundDisabled();
-      Get.back();
+      Get.back(); // Close any open overlays/dialogs
 
+      // Check for all required fields
       if (myCartList.isNotEmpty &&
-          selectedDate.value != "" &&
+          selectedDate.value.isNotEmpty &&
           currentDeliveryAddress.isNotEmpty &&
-          selectedTime.value != "") {
-        var orderProductsList = [];
-        Map<String, dynamic> postOrder = {};
+          selectedTime.value.isNotEmpty) {
+        List<Map<String, dynamic>> orderProductsList = [];
 
         for (var prod in myCartList) {
-          Map<String, dynamic> orderDetails = {
+          final totalQty = await fetchTotalQty(prod);
+
+          orderProductsList.add({
             "name": prod.name,
-            "image": prod.image,
             "price": prod.price,
             "productId": prod.prodId,
             "qty": prod.qty,
-          };
-          postOrder = {
-            "customerName": userName.value,
-            "delivery_address": currentDeliveryAddress,
-            "date": DateTime.now(),
-            "deliveryDate": selectedDate.value,
-            "customerId": BaseController.firebaseAuth.getUid(),
-            "driverId": "",
-            "farmerId": prod.farmerId.toString(),
-            "farmerName": prod.farmerName.toString(),
-            "isRejected": false,
-            "orderDetails": orderProductsList,
-            "orderID": "",
-            "status": Constants.orderStatusListOfFarmer[0].toString(),
-            "time": selectedTime.value,
-            "totalAmount": totalPrice + deliveryCharge,
-          };
-          orderProductsList.add(orderDetails);
+            "totalQty": totalQty,
+          });
         }
 
-        orderId.value = await BaseController.firebaseAuth.placeOrder(postOrder);
+        Map<String, dynamic> postOrder = {
+          "customerName": userName.value,
+          "delivery_address": currentDeliveryAddress,
+          "date": DateTime.now(),
+          "deliveryDate": selectedDate.value,
+          "customerId": BaseController.firebaseAuth.getUid(),
+          "driverId": "",
+          "farmerId": myCartList.first.farmerId,
+          "farmerName": myCartList.first.farmerName,
+          "isRejected": false,
+          "orderDetails": orderProductsList,
+          "paymentMethod": selectedPaymentMethod.value,
+          "orderID": "",
+          "status": Constants.orderStatusListOfFarmer[0],
+          "time": selectedTime.value,
+          "totalAmount": totalPrice + deliveryCharge,
+        };
 
-        log(orderId.value.toString());
-        fetchFcmTokenById(myCartList.first.farmerId.toString(), {
+        orderId.value = await BaseController.firebaseAuth.placeOrder(postOrder);
+        print("Order placed: ${orderId.value}");
+
+        fetchFcmTokenById(myCartList.first.farmerId, {
           "orderId": orderId.value,
         });
 
-        await BaseController.firebaseAuth.cartDelete();
-        selectedDate.value = "";
-        selectedTime.value = "";
-        myCartList.clear();
-        orderProductsList.clear();
-        postOrder.clear();
-
         return true;
-            } else {
+      } else {
+        // Build detailed feedback for the user
         String getMessage() {
           String dateMessage =
               selectedDate.value.isNotEmpty
@@ -309,14 +344,13 @@ class MyCartController extends GetxController {
         );
       }
     } catch (e) {
-      log("Error occurred while placing the order: $e");
+      print("Error placing order: $e");
       Get.snackbar(
         "Error",
         "Something went wrong while processing your order. Please try again.",
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: AppTheme.lightRose,
       );
-      LoadingIndicator.stopLoading();
     } finally {
       LoadingIndicator.stopLoading();
     }
@@ -326,6 +360,8 @@ class MyCartController extends GetxController {
 
   getCustomerDeliveryAddress() async {
     LoadingIndicator.loadingWithBackgroundDisabled();
+    isLoadingAddress.value = true;
+
     try {
       final data = await BaseController.firebaseAuth.getCurrentUserInfoById(
         BaseController.firebaseAuth.getUid(),
@@ -347,10 +383,16 @@ class MyCartController extends GetxController {
       phoneNumber.value = data["phoneNumber"];
       currentDeliveryAddress["email"] = email.value;
       currentDeliveryAddress["phoneNumber"] = phoneNumber.value;
+      Future.delayed(Duration(seconds: 3), () {
+        isLoadingAddress.value = false;
+      });
     } catch (e) {
       LoadingIndicator.stopLoading();
     } finally {
       LoadingIndicator.stopLoading();
+      Future.delayed(Duration(seconds: 3), () {
+        isLoadingAddress.value = false;
+      });
     }
   }
 
@@ -378,6 +420,35 @@ class MyCartController extends GetxController {
       print("Error :  $e");
     } finally {
       LoadingIndicator.stopLoading();
+    }
+  }
+
+  placeOrder() async {
+    var isOrdered = await postOrderComplete();
+
+    if (isOrdered) {
+      updateProduct();
+      await BaseController.firebaseAuth.cartDelete();
+      selectedDate.value = "";
+      selectedTime.value = "";
+
+      MyCartWidgets().showPremiumSuccessDialog();
+      await Future.delayed(Duration(seconds: 5));
+      myCartList.clear();
+      Get.back();
+      Get.toNamed(Routes.countDownTimer, arguments: [orderId.value]);
+    } else {
+      print("Order failed");
+    }
+  }
+
+  void updateProduct() async {
+    for (var prod in myCartList) {
+      await BaseController.firebaseAuth.updateProductQty(
+        prod.farmerId.toString(),
+        prod.prodId,
+        prod.qty,
+      );
     }
   }
 

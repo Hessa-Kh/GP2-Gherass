@@ -8,6 +8,7 @@ import 'package:gherass/theme/styles.dart';
 import 'package:text_scroll/text_scroll.dart';
 
 import '../../../../theme/app_theme.dart';
+import '../../../../util/image_util.dart';
 import '../../controller/customer_orders_controller.dart';
 
 class CustomerOrdersWidgets {
@@ -586,35 +587,22 @@ class CustomerOrdersWidgets {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 10.0),
-      child: Row(
+      child: Obx(()=>Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           ClipOval(
-            child: Builder(
-              builder: (context) {
-                try {
-                  String? base64String = product["image"]?.toString();
-
-                  if (base64String == null || base64String.isEmpty) {
-                    throw Exception("Invalid image data");
-                  }
-
-                  Uint8List imageBytes = base64Decode(base64String);
-                  return Image.memory(
-                    imageBytes,
-                    width: 30,
-                    height: 30,
-                    fit: BoxFit.cover,
-                  );
-                } catch (e) {
-                  return Icon(
-                    Icons.image_not_supported,
-                    size: 30,
-                    color: Colors.grey,
-                  );
-                }
-              },
-            ),
+            child: controller.getProductImage(product["productId"]).value.isNotEmpty
+                ? Image.memory(
+              base64Decode(
+                controller.getProductImage(product["productId"]).toString(),
+              ),
+              height: 20,
+              width: 20,
+            ): Icon(
+                  Icons.image_not_supported,
+                  size: 30,
+                  color: Colors.grey,
+                ),
           ),
           SizedBox(width: 10),
 
@@ -648,7 +636,7 @@ class CustomerOrdersWidgets {
             ),
           ),
         ],
-      ),
+      )),
     );
   }
 }

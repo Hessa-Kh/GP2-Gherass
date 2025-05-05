@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -10,6 +9,7 @@ import 'package:gherass/module/inventory/controller/inventory_controller.dart';
 import 'package:gherass/theme/app_theme.dart';
 import 'package:gherass/widgets/loader.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:translator/translator.dart';
 
 class AddProdController extends BaseController {
   var isEdit = false.obs;
@@ -34,7 +34,7 @@ class AddProdController extends BaseController {
   var productId = "".obs;
   var farmerProducts = <Map<String, dynamic>>[].obs;
   RxList<Map<String, dynamic>> categoryList = <Map<String, dynamic>>[].obs;
-
+  final translator = GoogleTranslator();
   var inventoryController = InventoryController();
 
   @override
@@ -47,7 +47,6 @@ class AddProdController extends BaseController {
     } else {
       isEdit.value = true;
       updateFields(arguments[0]);
-      log(arguments[0].toString());
     }
     getInventoryProducts();
   }
@@ -70,6 +69,20 @@ class AddProdController extends BaseController {
 
   void postProducts() async {
     LoadingIndicator.loadingWithBackgroundDisabled();
+    var productNameTranslated = "".obs;
+    if (productName.text.contains(RegExp(r'[a-z]'))) {
+      var productNameEnglish = await translator.translate(
+        productName.text.toString(),
+        to: 'ar',
+      );
+      productNameTranslated.value = productNameEnglish.text;
+    } else {
+      var productNameArabic = await translator.translate(
+        productName.text.toString(),
+        to: 'en',
+      );
+      productNameTranslated.value = productNameArabic.text;
+    }
     if (productName.text.isEmpty) {
       Get.snackbar(
         "Validation Error",
@@ -91,8 +104,6 @@ class AddProdController extends BaseController {
       LoadingIndicator.stopLoading();
       return;
     }
-
-    
 
     if (productDescription.text.isEmpty) {
       Get.snackbar(
@@ -140,6 +151,7 @@ class AddProdController extends BaseController {
 
     Map<String, dynamic> productData = {
       "name": productName.text,
+      "translatedName": productNameTranslated.value,
       "image": base64ProdImage,
       "category": selectedCategory.value,
       "prodType": productType.text,
@@ -150,8 +162,6 @@ class AddProdController extends BaseController {
       "quality": productQuality.value,
       "productionDate": productionDateController.text,
     };
-
-    log(productData.toString());
 
     try {
       await BaseController.firebaseAuth.addProductToFarmer(productData);
@@ -189,7 +199,20 @@ class AddProdController extends BaseController {
 
   void updateProduct() async {
     LoadingIndicator.loadingWithBackgroundDisabled();
-
+    var productNameTranslated = "".obs;
+    if (productName.text.contains(RegExp(r'[a-z]'))) {
+      var productNameEnglish = await translator.translate(
+        productName.text.toString(),
+        to: 'ar',
+      );
+      productNameTranslated.value = productNameEnglish.text;
+    } else {
+      var productNameArabic = await translator.translate(
+        productName.text.toString(),
+        to: 'en',
+      );
+      productNameTranslated.value = productNameArabic.text;
+    }
     if (productName.text.isEmpty) {
       Get.snackbar(
         "Validation Error",
@@ -211,7 +234,6 @@ class AddProdController extends BaseController {
       LoadingIndicator.stopLoading();
       return;
     }
-
 
     if (productDescription.text.isEmpty) {
       Get.snackbar(
@@ -259,6 +281,7 @@ class AddProdController extends BaseController {
 
     Map<String, dynamic> productData = {
       "name": productName.text,
+      "translatedName": productNameTranslated.value,
       "image": base64ProdImage,
       "category": selectedCategory.value,
       "prodType": productType.text,
@@ -268,9 +291,8 @@ class AddProdController extends BaseController {
       "qty": productQty.value,
       "quality": productQuality.value,
       "productionDate": productionDateController.text,
+      "isHidden": (productQty.value < 0) ? false : true,
     };
-
-    log(productData.toString());
 
     try {
       await BaseController.firebaseAuth.updateProductToFarmer(

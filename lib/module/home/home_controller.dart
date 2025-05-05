@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:math' as math;
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:gherass/apiservice/dio_api.dart';
@@ -75,7 +74,11 @@ class HomeViewController extends BaseController {
   var searchField = TextEditingController();
   @override
   void onInit() {
+    getDatas();
     super.onInit();
+  }
+
+  getDatas() async{
     logInType.value = BaseController.storageService.getLogInType();
     getDetailsById();
     getData();
@@ -309,14 +312,16 @@ class HomeViewController extends BaseController {
         BaseController.firebaseAuth.getUid(),
       );
       if (status?["sellerStatus"] != null &&
-          status?["sellerStatus"] is List<dynamic>) {
+          status?["sellerStatus"] is List<dynamic> &&
+          Constants.orderStatusListOfFarmer.isEmpty) {
         Constants.orderStatusListOfFarmer.addAll(
           List<String>.from(status?["sellerStatus"]),
         );
       }
 
       if (status?["driverStatus"] != null &&
-          status?["driverStatus"] is List<dynamic>) {
+          status?["driverStatus"] is List<dynamic> &&
+          Constants.orderStatusListOfDriver.isEmpty) {
         Constants.orderStatusListOfDriver.addAll(
           List<String>.from(status?["driverStatus"]),
         );
@@ -327,20 +332,18 @@ class HomeViewController extends BaseController {
   }
 
   fetchDriverOrders() async {
+    showCurrentOrders.value=false;
+    showPastOrders.value=false;
     pastOrders.clear();
     currentOrders.clear();
     driverOrdersHome =
-        (await BaseController.firebaseAuth.fetchOrdersWithDriverId(
-          BaseController.firebaseAuth.getUid(),
-        )) ??
+        (await BaseController.firebaseAuth.fetchOrdersWithDriverId(BaseController.firebaseAuth.getUid(),)) ??
         [];
     if (driverOrdersHome.isNotEmpty) {
       for (var element in driverOrdersHome) {
-        if (Constants.orderStatusListOfDriver.last == element["status"]) {
+        if (element["status"] == "Successfully Delivered") {
           pastOrders.add(element);
-        } else if (Constants.orderStatusListOfDriver.contains(
-          element["status"],
-        )) {
+        } else {
           currentOrders.add(element);
         }
       }
@@ -382,10 +385,31 @@ class HomeViewController extends BaseController {
 
       for (var product in productList) {
         final productName = (product["name"] ?? "").toString().toLowerCase();
-        if (productName.contains(query)) {
+        final productNameTranslated =
+            (product["translatedName"] ?? "").toString().toLowerCase();
+        if (productName.contains(query) ||
+            productNameTranslated.contains(query)) {
           searchedProductList.add(product);
         }
       }
+    }
+  }
+
+  String getTranslatedSearchedName(dynamic product) {
+    String values = "";
+    if (product['translatedName'].toString().toLowerCase().contains(
+      searchField.text.toLowerCase(),
+    )) {
+      values = product['translatedName'];
+      return values;
+    } else if (product['name'].toString().toLowerCase().contains(
+      searchField.text.toLowerCase(),
+    )) {
+      values = product['name'];
+      return values;
+    } else {
+      values = 'Unnamed Product';
+      return values;
     }
   }
 
@@ -516,7 +540,6 @@ class HomeViewController extends BaseController {
           customerLat = double.tryParse(response['lat'].toString());
           customerLng = double.tryParse(response['lng'].toString());
         }
-        print("Customer Lat: $customerLat, Lng: $customerLng");
         LoadingIndicator.stopLoading();
       }
       LoadingIndicator.stopLoading();
@@ -582,6 +605,5 @@ class HomeViewController extends BaseController {
     } else {
       accountType.value = data?["accountType"] ?? "";
     }
-    print(' accountType.value:${accountType.value}');
   }
 }

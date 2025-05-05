@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:get/get.dart';
 import 'package:gherass/baseclass/basecontroller.dart';
 import 'package:gherass/util/constants.dart';
@@ -18,54 +16,74 @@ class OrderTrackController extends BaseController {
 
   @override
   void onInit() {
-    // TODO: implement onInit
     super.onInit();
-    if (Get.arguments != null){
-      var orderId = Get.arguments[0];
-      print("orderId : $orderId");
-      this.orderId.value = orderId ?? "";
+
+    if (Get.arguments != null && Get.arguments.isNotEmpty) {
+      orderId.value = Get.arguments[0] ?? "";
     }
 
     if (orderStatusList.isEmpty) {
-      for (var element in Constants.orderStatusListOfFarmer) {
-        orderStatusList.add(element);
-      }
-      for (var element in Constants.orderStatusListOfDriver) {
-        orderStatusList.add(element);
-      }
+      orderStatusList.addAll(Constants.orderStatusListOfFarmer);
+      orderStatusList.addAll(Constants.orderStatusListOfDriver);
     }
-    getOrderStatus();
+
+    updateStatus();
+  }
+
+  updateStatus() async {
+    if (orderId.value.isNotEmpty) {
+      await getOrderStatus();
+    }
   }
 
   getOrderStatus() async {
-    final orderDetails = await BaseController.firebaseAuth.getOrderById(
-      orderId.value.toString(),
-    );
+    try {
+      if (orderId.value.isEmpty) {
+        return;
+      }
 
-    orderStatus.value = orderDetails["status"];
-    var lat = orderDetails['delivery_address']['lat'] ?? 24.774265;
-    var lng = orderDetails['delivery_address']['lng'] ?? 46.738586;
-    mapPosition.value = LatLng(lat, lng);
-
-    if (googleMapController != null) {
-      googleMapController!.animateCamera(
-        CameraUpdate.newLatLng(mapPosition.value!),
+      final orderDetails = await BaseController.firebaseAuth.getOrderById(
+        orderId.value,
       );
-    }
 
-    final driverId = orderDetails["driverId"];
-    log('driverId:$driverId');
-    final driverDetails = await BaseController.firebaseAuth.fetchDetailsById(
-      'driver',
-      driverId,
-    );
-    driverName.value = driverDetails!["name"];
-    driverphone.value = driverDetails["phoneNumber"];
+      if (orderDetails.isEmpty) {
+        return;
+      }
 
-    log('driverDetails:${driverDetails["phoneNumber"].toString()}');
-    statusIndex = orderStatusList.toList().indexWhere(
-      (element) => element == orderStatus,
-    );
+      orderStatus.value = orderDetails["status"] ?? "unknown";
+
+      var lat = orderDetails['delivery_address']?['lat'] ?? 24.774265;
+      var lng = orderDetails['delivery_address']?['lng'] ?? 46.738586;
+      mapPosition.value = LatLng(lat, lng);
+
+      if (googleMapController != null) {
+        googleMapController!.animateCamera(
+          CameraUpdate.newLatLng(mapPosition.value!),
+        );
+      }
+
+      final driverId = orderDetails["driverId"];
+
+      if (driverId == null || driverId.toString().isEmpty) {
+        return;
+      }
+
+      final driverDetails = await BaseController.firebaseAuth.fetchDetailsById(
+        'driver',
+        driverId,
+      );
+
+      if (driverDetails == null || driverDetails.isEmpty) {
+        return;
+      }
+
+      driverName.value = driverDetails["name"] ?? "Unknown";
+      driverphone.value = driverDetails["phoneNumber"] ?? "N/A";
+
+      statusIndex = orderStatusList.toList().indexWhere(
+        (element) => element == orderStatus.value,
+      );
+    } catch (e, stackTrace) {}
   }
 
   openDialPad() async {

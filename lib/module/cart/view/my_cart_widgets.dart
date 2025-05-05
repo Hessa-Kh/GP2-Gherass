@@ -1,12 +1,11 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gherass/helper/routes.dart';
 import 'package:gherass/module/cart/controller/my_cart_controller.dart';
 import 'package:gherass/module/cart/model/cart_model.dart';
-import 'package:gherass/module/track_orders/view/widgets/track_orders_widgets.dart';
+import 'package:gherass/module/cart/view/payment_screen.dart';
 import 'package:gherass/theme/app_theme.dart';
 import 'package:gherass/theme/styles.dart';
 import 'package:intl/intl.dart';
@@ -146,6 +145,46 @@ class MyCartWidgets {
                           Routes.deliverylocation,
                           arguments: controller.currentDeliveryAddress,
                         );
+                      } else {
+                        Get.dialog(
+                          AlertDialog(
+                            title: Text("No Delivery Address".tr),
+                            content: Text(
+                              "Please add a delivery address before continuing."
+                                  .tr,
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Get.back();
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.black,
+                                  backgroundColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text("Cancel".tr),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Get.back();
+                                  Get.back();
+                                  Get.toNamed(Routes.deliveryAddress);
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.white,
+                                  backgroundColor: AppTheme.lightPurple,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                child: Text("Add Now".tr),
+                              ),
+                            ],
+                          ),
+                        );
                       }
                     },
                     child: Text(
@@ -156,42 +195,73 @@ class MyCartWidgets {
                 ],
               ),
               Obx(
-                () => Stack(
-                  children: [
-                    Visibility(
-                      visible:
-                          (controller
-                                      .currentDeliveryAddress
-                                      .values
-                                      .isNotEmpty &&
-                                  controller.adddress.value.isNotEmpty)
-                              ? false
-                              : true,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Colors.lightBlue.shade50,
-                        child: const Icon(
-                          Icons.location_on_outlined,
-                          color: AppTheme.black,
+                () =>
+                    controller.isLoadingAddress.value
+                        ? Center(child: CircularProgressIndicator())
+                        : ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.lightBlue.shade50,
+                            child: const Icon(
+                              Icons.location_on_outlined,
+                              color: AppTheme.black,
+                            ),
+                          ),
+                          title: Text(
+                            (controller
+                                        .currentDeliveryAddress
+                                        .values
+                                        .isNotEmpty &&
+                                    controller.adddress.value.isNotEmpty)
+                                ? controller.adddress.value
+                                : "No delivery location selected.".tr,
+                            style: Styles.normalTextStyle(AppTheme.black, 16),
+                          ),
                         ),
-                      ),
-                      title: Text(
-                        (controller.currentDeliveryAddress.values.isNotEmpty &&
-                                controller.adddress.value.isNotEmpty)
-                            ? controller.adddress.value
-                            : "please change your Delivery Address".tr,
-                        style: Styles.normalTextStyle(AppTheme.black, 16),
-                      ),
-                    ),
-                  ],
-                ),
               ),
+
+              // Obx(
+              //   () => Stack(
+              //     children: [
+              //       Visibility(
+              //         visible:
+              //             (controller
+              //                         .currentDeliveryAddress
+              //                         .values
+              //                         .isNotEmpty &&
+              //                     controller.adddress.value.isNotEmpty)
+              //                 ? false
+              //                 : true,
+              //         child: Center(child: CircularProgressIndicator()),
+              //       ),
+              //       ListTile(
+              //         leading: CircleAvatar(
+              //           backgroundColor: Colors.lightBlue.shade50,
+              //           child: const Icon(
+              //             Icons.location_on_outlined,
+              //             color: AppTheme.black,
+              //           ),
+              //         ),
+              //         title: Text(
+              //           (controller.currentDeliveryAddress.values.isNotEmpty &&
+              //                   controller.adddress.value.isNotEmpty)
+              //               ? controller.adddress.value
+              //               : "please change your Delivery Address".tr,
+              //           style: Styles.normalTextStyle(AppTheme.black, 16),
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               const Divider(color: AppTheme.whiteAndGrey),
               Obx(() => summary()),
               const SizedBox(height: 20),
-              paymentMethod(),
+
+              Obx(
+                () => paymentMethod((method) {
+                  controller.selectedPaymentMethod.value = method;
+                }, controller.selectedPaymentMethod.value),
+              ),
+
               const SizedBox(height: 20),
               Obx(
                 () => ElevatedButton(
@@ -427,7 +497,7 @@ class MyCartWidgets {
     );
   }
 
-  Widget paymentMethod() {
+  Widget paymentMethod(Function(String) onChanged, String selectedValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -438,22 +508,30 @@ class MyCartWidgets {
         const SizedBox(height: 8),
         Column(
           children: [
-            paymentOption("ApplePay", true),
-            const SizedBox(width: 20),
-            paymentOption("Cash", false),
+            paymentOption("ApplePay".tr, onChanged, selectedValue),
+            paymentOption("Cash".tr, onChanged, selectedValue),
           ],
         ),
       ],
     );
   }
 
-  Widget paymentOption(String method, bool isSelected) {
+  Widget paymentOption(
+    String method,
+    Function(String) onChanged,
+    String selectedValue,
+  ) {
     return Row(
       children: [
-        Icon(
-          Icons.circle,
-          color: isSelected ? Colors.green : Colors.grey,
-          size: 13,
+        Radio<String>(
+          value: method,
+          groupValue: selectedValue,
+          onChanged: (String? value) {
+            if (value != null) {
+              onChanged(value);
+            }
+          },
+          activeColor: Colors.green,
         ),
         const SizedBox(width: 5),
         Text(method, style: Styles.regularTextView(15, AppTheme.black)),
@@ -571,16 +649,19 @@ class MyCartWidgets {
                       ),
                       InkWell(
                         onTap: () async {
-                          var isOrderd = await controller.postOrderComplete();
-                          if (isOrderd) {
-                            log("sucesss");
+                          if (controller.selectedPaymentMethod.value ==
+                              "ApplePay") {
+                            Get.back();
+                            final finalAmt =
+                                controller.totalPrice +
+                                controller.deliveryCharge;
                             Get.to(
-                              OrderCountdownPage(
-                                orderId: controller.orderId.value,
+                              () => PaymentScreen(
+                                totalAmount: finalAmt.toString(),
                               ),
                             );
                           } else {
-                            log("failed");
+                            controller.placeOrder();
                           }
                         },
                         child: Container(
@@ -614,6 +695,44 @@ class MyCartWidgets {
               ),
             ),
           ),
+    );
+  }
+
+  void showPremiumSuccessDialog() {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.green.withOpacity(0.1),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Icon(Icons.check_circle, color: Colors.green, size: 48),
+              ),
+              const SizedBox(height: 20),
+
+              Text(
+                "Order Completed",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+      ),
+      barrierDismissible: false,
     );
   }
 }

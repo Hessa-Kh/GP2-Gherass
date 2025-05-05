@@ -3,12 +3,12 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gherass/helper/routes.dart';
+import 'package:gherass/module/home/home_controller.dart';
 import 'package:gherass/module/products/controller/product_contoller.dart';
 import 'package:gherass/theme/styles.dart';
 import 'package:text_scroll/text_scroll.dart';
 import '../../theme/app_theme.dart';
 import '../inventory/view/widgets/inventory_widgets.dart';
-import 'home_controller.dart';
 
 class HomeWidgets {
   var controller = Get.find<HomeViewController>();
@@ -25,7 +25,6 @@ class HomeWidgets {
         !controller.hasShownDialog.value) {
       Future.delayed(Duration.zero, () {
         controller.hasShownDialog.value = true;
-        
       });
     }
 
@@ -419,7 +418,7 @@ class HomeWidgets {
         ),
 
         title: Text(
-          product['name'] ?? 'Unnamed Product',
+         controller.getTranslatedSearchedName(product),
           style: Styles.boldTextView(16, AppTheme.black),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,

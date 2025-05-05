@@ -309,30 +309,35 @@ class FarmerHome extends StatelessWidget {
                                             children: [
                                               Icon(Icons.location_city),
                                               SizedBox(width: 8),
-                                              TextScroll(
-                                                farmItem["farmLocation"]
-                                                        .toString() ??
-                                                    "",
-                                                mode: TextScrollMode.endless,
-                                                velocity: const Velocity(
-                                                  pixelsPerSecond: Offset(
-                                                    50,
-                                                    0,
+                                              SizedBox(
+                                                width: MediaQuery.of(context).size.width/2.2,
+                                                child: Text(
+                                                  farmItem["farmLocation"]
+                                                          .toString() ??
+                                                      "",
+                                                  maxLines: 3,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  // mode: TextScrollMode.endless,
+                                                  // velocity: const Velocity(
+                                                  //   pixelsPerSecond: Offset(
+                                                  //     50,
+                                                  //     0,
+                                                  //   ),
+                                                  // ),
+                                                  // delayBefore: const Duration(
+                                                  //   milliseconds: 500,
+                                                  // ),
+                                                  // numberOfReps: 2,
+                                                  // pauseBetween: const Duration(
+                                                  //   milliseconds: 50,
+                                                  // ),
+                                                  style: Styles.mediumTextView(
+                                                    12,
+                                                    AppTheme.black,
                                                   ),
+                                                  textAlign: TextAlign.start,
+                                                  // selectable: true,
                                                 ),
-                                                delayBefore: const Duration(
-                                                  milliseconds: 500,
-                                                ),
-                                                numberOfReps: 2,
-                                                pauseBetween: const Duration(
-                                                  milliseconds: 50,
-                                                ),
-                                                style: Styles.mediumTextView(
-                                                  12,
-                                                  AppTheme.black,
-                                                ),
-                                                textAlign: TextAlign.right,
-                                                selectable: true,
                                               ),
                                             ],
                                           ),

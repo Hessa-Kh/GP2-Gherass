@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gherass/baseclass/basecontroller.dart';
@@ -28,6 +26,7 @@ class ProductController extends BaseController {
   var farmerRatings = [].obs;
   RxString farmerId = "".obs;
   RxString farmerName = "".obs;
+  RxString farmRating = "".obs;
   RxString accountType = "".obs;
   var farmData = {};
   var selectedProduct = {}.obs;
@@ -43,15 +42,22 @@ class ProductController extends BaseController {
         farmerId.value = Get.arguments != null ? Get.arguments[0] : {};
         farmData = Get.arguments != null ? Get.arguments[1]["farmDetails"] : {};
         farmerName.value = farmData["farmName"].toString();
+        if (farmData["farm_ratings"] != null) {
+          farmRating.value = farmData["farm_ratings"].toString();
+        } else {
+          farmRating.value = "0.0";
+        }
         selectedProduct.assignAll(Get.arguments[1]);
       } catch (e) {
         farmData = Get.arguments != null ? Get.arguments[1] : {};
         farmerName.value = farmData["farmName"].toString();
-
-        log(e.toString());
+        if (farmData["farm_ratings"] != null) {
+          farmRating.value = farmData["farm_ratings"].toString();
+        } else {
+          farmRating.value = "0.0";
+        }
       }
       selectedProduct.assignAll(Get.arguments[1]);
-      log(selectedProduct.toJson().toString());
     }
 
     getFarmerProducts();
@@ -136,7 +142,6 @@ class ProductController extends BaseController {
   void bookEvents(BuildContext context, farmName) async {
     Map<String, dynamic> eventData = farmerEventItem.first;
     eventData["farmName"] = farmName;
-    log(eventData.toString());
     try {
       LoadingIndicator.loadingWithBackgroundDisabled();
 
@@ -206,8 +211,6 @@ class ProductController extends BaseController {
   void getFarmerProducts() async {
     try {
       LoadingIndicator.loadingWithBackgroundDisabled();
-      log('farmerId: ${farmerId.value}');
-      log('farmerName: ${farmerName.value}');
 
       if (farmerId.value.isEmpty) {
         return;
@@ -226,31 +229,21 @@ class ProductController extends BaseController {
       );
 
       if (response != null) {
-        log("Fetching products... total received: ${response.length}");
-
         final filteredResponse =
             response.where((product) {
               final visibility = product['visibility'];
-              final productId =
-                  product['id'] ?? product['name'] ?? 'Unknown Product';
+              final isHidden = product['isHidden'] ?? false;
 
-              log(
-                "Product ID/Name: $productId, Visibility: $visibility, User Account Type: ${accountType.value}",
-              );
+              // ✅ Skip product if it's hidden
+              if (isHidden == true) return false;
 
-              if (visibility == null) {
-                log("Product $productId skipped due to null visibility");
-                return false;
-              }
+              // ✅ Visibility filter
+              if (visibility == null) return false;
 
               final isVisible =
                   visibility == accountType.value ||
                   visibility == 'Both' ||
                   accountType.value == 'Both';
-
-              log(
-                "Product $productId is ${isVisible ? 'VISIBLE' : 'NOT visible'} to this user",
-              );
 
               return isVisible;
             }).toList();
@@ -284,14 +277,11 @@ class ProductController extends BaseController {
         );
 
         farmerProducts.assignAll([...fruits, ...vegetables, ...others]);
-      } else {
-        log("Error: Failed to fetch or assign products.");
       }
 
       LoadingIndicator.stopLoading();
     } catch (e) {
       LoadingIndicator.stopLoading();
-      log("Error in getFarmerProducts(): $e");
     }
   }
 
@@ -305,18 +295,46 @@ class ProductController extends BaseController {
       for (var element in farmerRatings) {
         farmRating.value = farmRating.value + element["rating"];
       }
-      Map<String, dynamic> updateProfile = {
-        "farm_ratings": double.parse(
-          (farmRating.value / farmerRatings.length).toDouble().toStringAsFixed(
-            1,
-          ),
-        ),
-      };
-      await BaseController.firebaseAuth.updateUserData(
-        updateProfile: updateProfile,
-        logInUserType: "farmer",
-        userId: farmerId.value,
-      );
+      if (farmRating.value != 0.0) {
+        Map<String, dynamic> updateProfile = {
+          "farm_ratings":
+              double.parse(
+                (farmRating.value / farmerRatings.length)
+                    .toDouble()
+                    .toStringAsFixed(1),
+              ) ??
+              0.0,
+        };
+        await BaseController.firebaseAuth.updateUserData(
+          updateProfile: updateProfile,
+          logInUserType: "farmer",
+          userId: farmerId.value,
+        );
+      } else {
+        Map<String, dynamic> updateProfile = {"farm_ratings": 0.0};
+        await BaseController.firebaseAuth.updateUserData(
+          updateProfile: updateProfile,
+          logInUserType: "farmer",
+          userId: farmerId.value,
+        );
+      }
+      fetchFarmDetails();
+    }
+  }
+
+  fetchFarmDetails() async {
+    final results = await BaseController.firebaseAuth.fetchDetailsById(
+      "farmer",
+      farmerId.value,
+    );
+    if (results != null) {
+      farmData = results;
+      farmerName.value = results["farmName"].toString();
+      if (results["farm_ratings"] != null) {
+        farmRating.value = results["farm_ratings"].toString();
+      } else {
+        farmRating.value = "0.0";
+      }
     }
   }
 
@@ -345,7 +363,7 @@ class ProductController extends BaseController {
   getAccountType() async {
     final data = await BaseController.firebaseAuth.getCurrentUserInfoById(
       BaseController.firebaseAuth.getUid(),
-      logInType.value,
+      BaseController.storageService.getLogInType(),
     );
 
     if (data?["accountType"] == "Personal account") {

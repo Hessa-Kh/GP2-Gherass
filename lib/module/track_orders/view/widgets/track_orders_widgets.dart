@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gherass/helper/routes.dart';
 import 'package:gherass/module/track_orders/controller/order_track_controller.dart';
 import 'package:gherass/theme/app_theme.dart';
 import 'package:gherass/widgets/appBar.dart';
@@ -12,8 +12,11 @@ import '../../../../widgets/svg_icon_widget.dart';
 import '../../controller/orders_timer_controller.dart';
 
 class TrackOrdersWidgets {
-  var controller = Get.put(OrderTrackController());
-
+  //var controller = Get.put<OrderTrackController>();
+  final controller =
+      Get.isRegistered<OrderTrackController>()
+          ? Get.find<OrderTrackController>()
+          : Get.put(OrderTrackController());
   Widget trackOrdersWidget(BuildContext context) {
     return Obx(() {
       if (controller.orderStatus.value.isEmpty) {
@@ -38,16 +41,25 @@ class TrackOrdersWidgets {
                 const SizedBox(height: 40),
                 ListView.builder(
                   shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: controller.orderStatusList.length,
                   itemBuilder: (context, index) {
+                    final currentStatus = controller.orderStatus.value.trim();
+                    final statusList = controller.orderStatusList.toList();
+                    final status = statusList[index].trim();
+                    final currentIndex = statusList.indexWhere(
+                      (s) => s.trim() == currentStatus,
+                    );
+                    final isLast = index == statusList.length - 1;
+                    final isCurrent = status == currentStatus;
+                    final isDone = index < currentIndex;
+
                     return buildTimelineStep(
-                      controller.orderStatusList.toList()[index],
+                      status,
                       Icons.check,
-                      index <= controller.statusIndex ? true : false,
-                      controller.orderStatusList.length == index + 1
-                          ? true
-                          : false,
+                      isDone,
+                      isLast,
+                      isCurrent,
                     );
                   },
                 ),
@@ -236,7 +248,10 @@ class TrackOrdersWidgets {
     IconData icon,
     bool isDone,
     bool isLast,
+    bool isCurrent,
   ) {
+    final isActive = isDone || isCurrent;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -245,7 +260,7 @@ class TrackOrdersWidgets {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isDone ? Color(0xff6472D2) : Colors.grey[300],
+                color: isActive ? const Color(0xff6472D2) : Colors.grey[300],
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: Colors.white, size: 30),
@@ -254,13 +269,16 @@ class TrackOrdersWidgets {
               Container(
                 width: 2,
                 height: 20,
-                color: isDone ? Color(0xff6472D2) : Colors.grey[300],
+                color: isActive ? const Color(0xff6472D2) : Colors.grey[300],
               ),
           ],
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(text, style: Styles.boldTextView(16, Color(0xff101010))),
+          child: Text(
+            text,
+            style: Styles.boldTextView(16, const Color(0xff101010)),
+          ),
         ),
       ],
     );
@@ -334,15 +352,9 @@ class TrackOrdersWidgets {
 }
 
 class OrderCountdownPage extends StatelessWidget {
-  final String orderId;
-
-  const OrderCountdownPage({super.key, required this.orderId});
-
   @override
   Widget build(BuildContext context) {
     final OrdersTimerController controller = Get.put(OrdersTimerController());
-
-    controller.orderId.value = orderId;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -352,7 +364,7 @@ class OrderCountdownPage extends StatelessWidget {
         title: SizedBox(
           width: MediaQuery.of(context).size.width,
           child: TextScroll(
-            "Order  #$orderId",
+            "Order  #${controller.orderId.value} ",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -373,7 +385,7 @@ class OrderCountdownPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: GestureDetector(
-              onTap: () => Navigator.pop(context),
+              onTap: () => Get.offAllNamed(Routes.dashBoard),
               child: Container(
                 width: 40,
                 height: 40,

@@ -40,6 +40,7 @@ import 'helper/notification.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'locale/locale_service.dart';
 import 'module/track_orders/view/track_orders_view.dart';
+import 'module/track_orders/view/widgets/track_orders_widgets.dart';
 import 'module/vehicle_info/view/vehicle_info_view.dart';
 import 'theme/app_theme.dart';
 
@@ -205,6 +206,11 @@ class MyApp extends StatelessWidget {
           name: Routes.vehicleInfo,
           page: () => VehicleInfoView(),
           binding: BaseBinding(Routes.vehicleInfo),
+        ),
+        GetPage(
+          name: Routes.countDownTimer,
+          page: () => OrderCountdownPage(),
+          binding: BaseBinding(Routes.countDownTimer),
         ),
         GetPage(
           name: Routes.orderDetailDriverPage,

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gherass/module/products/view/product_widgets.dart';
@@ -40,7 +38,6 @@ class ProductPage extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      log(controller.farmerId.value.toString());
                       Get.toNamed(
                         Routes.myCart,
                         arguments: [controller.farmerId.value],

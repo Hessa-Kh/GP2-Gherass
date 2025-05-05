@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
@@ -139,7 +137,6 @@ class EventController extends BaseController {
       "location": address.value,
     };
 
-    log(eventData.toString());
 
     try {
       LoadingIndicator.loadingWithBackgroundDisabled();
@@ -231,7 +228,6 @@ class EventController extends BaseController {
       "location": address.value,
     };
 
-    log(eventData.toString());
 
     try {
       LoadingIndicator.loadingWithBackgroundDisabled();

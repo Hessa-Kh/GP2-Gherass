@@ -73,6 +73,7 @@ class BaseBinding extends Bindings {
       case Routes.addProdForm:
         Get.lazyPut<AddProdController>(() => AddProdController());
         Get.lazyPut<ProductController>(() => ProductController());
+        Get.lazyPut<InventoryController>(() => InventoryController());
         break;
       case Routes.salesStatistics:
       case Routes.farmRating:
@@ -118,6 +119,9 @@ class BaseBinding extends Bindings {
         break;
       case Routes.myCart:
         Get.lazyPut<MyCartController>(() => MyCartController());
+        break;
+      case Routes.countDownTimer:
+        Get.lazyPut<OrdersTimerController>(() => OrdersTimerController());
         break;
       case Routes.deliveryAddress:
         Get.lazyPut<DeliveryAddressController>(

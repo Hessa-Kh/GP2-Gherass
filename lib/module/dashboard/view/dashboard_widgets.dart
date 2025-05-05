@@ -6,6 +6,7 @@ import 'package:gherass/module/home/driver_home.dart';
 import 'package:gherass/module/home/farmer_home.dart';
 import 'package:gherass/module/inventory/view/inventory_screen.dart';
 import 'package:gherass/module/home/home_view.dart';
+import 'package:gherass/module/orders/controller/orders_controller.dart';
 import 'package:gherass/module/vehicle_info/view/vehicle_info_view.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
@@ -179,6 +180,11 @@ class DashboardWidgets {
           activeColorPrimary: AppTheme.primaryTextColor,
           activeColorSecondary: AppTheme.white,
           inactiveColorPrimary: Colors.grey[500],
+          // onPressed: (v) {
+          //   if (!Get.isRegistered<OrdersController>()) {
+          //     Get.put(OrdersController());
+          //   }
+          // },
         ),
         PersistentBottomNavBarItem(
           icon: const SvgIcon(ImageUtil.truck, color: AppTheme.black),

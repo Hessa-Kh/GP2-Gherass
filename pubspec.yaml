@@ -24,6 +24,7 @@ dependencies:
   fl_chart: ^0.70.2
   flutter:
     sdk: flutter
+  translator: ^1.0.3+1
   flutter_easyloading: ^3.0.5
   flutter_svg: ^2.0.17
   get: ^4.6.6

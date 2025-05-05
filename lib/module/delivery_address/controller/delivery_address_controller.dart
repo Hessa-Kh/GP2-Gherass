@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -248,7 +246,7 @@ class DeliveryAddressController extends BaseController {
         for (var element in addressList) {
           if (element["address_type"] == "Home") {
             addressId.value = element["id"];
-            log('Selected address ID: ${element["id"]}');
+
             break;
           }
         }

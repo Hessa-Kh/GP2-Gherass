@@ -4,6 +4,7 @@ import 'package:gherass/module/orders/controller/order_detail_map_controller.dar
 import 'package:gherass/theme/styles.dart';
 
 import '../../../theme/app_theme.dart';
+import '../../home/home_controller.dart';
 import 'map_view_widgets.dart';
 
 class OrderDetailsMapView extends StatelessWidget {
@@ -18,13 +19,14 @@ class OrderDetailsMapView extends StatelessWidget {
           backgroundColor: AppTheme.white,
           title: Text(
             "${"Order".tr}   #${controller.selectedOrder['orderID']}",
-            style: Styles.boldTextView(14, AppTheme.black),
+            style: Styles.boldTextView(16, AppTheme.black),
           ),
           leading: Padding(
             padding: const EdgeInsets.all(10.0),
             child: InkWell(
               onTap: () {
                 Get.back();
+                Get.find<HomeViewController>().getDatas();
               },
               child: CircleAvatar(
                 backgroundColor: AppTheme.pampas,

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -330,8 +329,6 @@ class CreateaccountController extends BaseController {
       var workingHours = workingHoursTextfield.value.text.toString();
 
       createAccountType.value = BaseController.storageService.getLogInType();
-
-      log("createAccountType:${createAccountType.value}");
 
       switch (createAccountType.value) {
         case "farmer":

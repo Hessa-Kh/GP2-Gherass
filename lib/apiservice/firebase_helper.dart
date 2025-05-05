@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
@@ -275,7 +273,7 @@ class FirebaseHelper {
         print("No farmer data found for the given ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching current user info: $e");
     }
 
     return farmerData;
@@ -334,7 +332,7 @@ class FirebaseHelper {
         print("No Events found for the given farmer ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching data In Event: $e");
     }
 
     return farmerEvents;
@@ -358,7 +356,7 @@ class FirebaseHelper {
         print("No ratings found for the given farmer ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching for faremr ratings: $e");
     }
 
     return farmerRatings;
@@ -458,7 +456,7 @@ class FirebaseHelper {
         print("No Events found for the given farmer ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching for promotions: $e");
     }
 
     return farmerPromotions;
@@ -491,7 +489,6 @@ class FirebaseHelper {
       var docRef = await promotionsRef.add(promotionData);
       promotionData['id'] = docRef.id;
       await docRef.update({'id': docRef.id});
-      log(promotionData.toString());
       print("event added successfully! for ${getUid()}");
     } catch (e) {
       print("Error adding event: $e");
@@ -549,7 +546,7 @@ class FirebaseHelper {
         print("No Events found for the given farmer ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching booked events: $e");
     }
 
     return farmerEvents;
@@ -574,10 +571,10 @@ class FirebaseHelper {
                 .map((doc) => doc.data() as Map<String, dynamic>)
                 .toList();
       } else {
-        print("No Events found for the given farmer ID.");
+        print("No fetchOrders found for the given Driver ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching orders: $e");
     }
 
     return orders;
@@ -708,7 +705,7 @@ class FirebaseHelper {
     try {
       QuerySnapshot snapshot =
           await FirebaseFirestore.instance
-              .collection('order')
+              .collection('order').orderBy('date', descending: true)
               .where('driverId', isEqualTo: driverId)
               .get();
 
@@ -718,10 +715,10 @@ class FirebaseHelper {
                 .map((doc) => doc.data() as Map<String, dynamic>)
                 .toList();
       } else {
-        print("No products found for the given farmer ID.");
+        print("No fetchOrdersWithDriverId found for the given .");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching oerders by driver Id: $e");
     }
 
     return orders;
@@ -820,6 +817,59 @@ class FirebaseHelper {
         }
       }
     } catch (e) {}
+  }
+
+  Future<void> updateProductQty(
+    String farmerId,
+    String productId,
+    int orderedQty,
+  ) async {
+    try {
+      DocumentReference productRef = FirebaseFirestore.instance
+          .collection('farmer')
+          .doc(farmerId)
+          .collection('products')
+          .doc(productId);
+
+      DocumentSnapshot productSnapshot = await productRef.get();
+
+      if (productSnapshot.exists) {
+        int currentQty = productSnapshot['qty'] ?? 0;
+
+        int updatedQty = currentQty - orderedQty;
+        updatedQty = updatedQty < 0 ? 0 : updatedQty;
+
+        Map<String, dynamic> updateData = {'qty': updatedQty};
+
+        if (updatedQty == 0) {
+          updateData['isHidden'] = true;
+        }
+
+        await productRef.update(updateData);
+      } else {}
+    } catch (e) {}
+  }
+
+  Future<int> getProductTotalQty(String farmerId, String productId) async {
+    try {
+      DocumentReference productRef = FirebaseFirestore.instance
+          .collection('farmer')
+          .doc(farmerId)
+          .collection('products')
+          .doc(productId);
+
+      DocumentSnapshot productSnapshot = await productRef.get();
+
+      if (productSnapshot.exists) {
+        int currentQty = productSnapshot['qty'] ?? 0;
+        return currentQty;
+      } else {
+        return -1; // Product not found
+      }
+    } catch (e) {
+      print('Error getting product quantity: $e');
+      return -1; // Handle error
+    }
   }
 
   Future<void> updateProductInCart(
@@ -1001,7 +1051,7 @@ class FirebaseHelper {
         return null;
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching StatusFlow: $e");
       return null;
     }
   }
@@ -1024,10 +1074,10 @@ class FirebaseHelper {
                 .map((doc) => doc.data() as Map<String, dynamic>)
                 .toList();
       } else {
-        print("No Events found for the given farmer ID.");
+        print("No fetchAddressList found for the given  ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching Address: $e");
     }
     return addressList;
   }
@@ -1041,7 +1091,7 @@ class FirebaseHelper {
 
       await addressRef.doc(addressId).delete();
     } catch (e) {
-      print("Error deleting product: $e");
+      print("Error deleteAddress: $e");
     }
   }
 
@@ -1073,7 +1123,7 @@ class FirebaseHelper {
 
       var docRef = addressRef.doc(addressId);
       await docRef.update(addressData);
-      print("event added successfully! for ${getUid()}");
+      print("updateAddress added successfully! for ${getUid()}");
     } catch (e) {
       print("Error adding event: $e");
     }
@@ -1113,10 +1163,10 @@ class FirebaseHelper {
                 .map((doc) => doc.data() as Map<String, dynamic>)
                 .toList();
       } else {
-        print("No Events found for the given farmer ID.");
+        print("No fetchVehicleInfo found for the given  ID.");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching Vehicle: $e");
     }
     return vehicleInfo;
   }
@@ -1138,6 +1188,8 @@ class FirebaseHelper {
         await docRef.update(vehicleInfo);
         print("Vehicle info updated successfully for driver: $driverId");
       } else {
+        var snapshot = await vehicleRef.add(vehicleInfo);
+        await snapshot.update({'vehicleID': snapshot.id});
         print("No existing vehicle info document found for driver: $driverId");
       }
     } catch (e) {
@@ -1162,10 +1214,10 @@ class FirebaseHelper {
                 .map((doc) => doc.data() as Map<String, dynamic>)
                 .toList();
       } else {
-        print("No products found for the given farmer ID.");
+        print("No fetchOrdersWithCustomerId found .");
       }
     } catch (e) {
-      print("Error fetching data: $e");
+      print("Error fetching customer id orders: $e");
     }
 
     return orders;
@@ -1209,10 +1261,10 @@ class FirebaseHelper {
       if (snapshot.docs.isNotEmpty) {
         data = snapshot.docs.first.data() as Map<String, dynamic>;
       } else {
-        print("No data found for user");
+        print("No fetchOrderDetailsById found for user");
       }
     } catch (e) {
-      print("Error fetching data");
+      print("Error fetching data DetailsById");
     }
     return data;
   }
@@ -1233,7 +1285,7 @@ class FirebaseHelper {
       } else {
         await ordersRef.update({"status": status});
       }
-      print("event added successfully! for $orderId");
+      print("updateOrderStatus  successfully! for $orderId");
     } catch (e) {
       print("Error adding event: $e");
     }
@@ -1246,7 +1298,7 @@ class FirebaseHelper {
           .doc(orderId);
 
       await ordersRef.update({"isRejected": true});
-      print("event added successfully! for $orderId");
+      print("rejectOrder successfully! for $orderId");
     } catch (e) {
       print("Error adding event: $e");
     }
@@ -1261,7 +1313,9 @@ class FirebaseHelper {
 
       var orderData = await ordersRef.get();
       orderStatus = orderData["status"];
-      print("orderData fetched successfully! for ${orderStatus.toString()}");
+      print(
+        "getOrderStatusByid fetched successfully! for ${orderStatus.toString()}",
+      );
       return orderStatus;
     } catch (e) {
       print("Error orderData : $e");
@@ -1281,7 +1335,7 @@ class FirebaseHelper {
 
       await docRef.update({"fcmToken": fcmToken});
 
-      print("FCM token updated successfully for user: $authId");
+      print("loginFcmUpdate token updated successfully for user: $authId");
     } catch (e) {
       print("Error updating FCM token: $e");
     }
@@ -1289,11 +1343,13 @@ class FirebaseHelper {
 
   Future<Map<String, dynamic>> getOrderById(String orderId) async {
     try {
+      print(">>orderId $orderId");
       DocumentReference orderRef = FirebaseFirestore.instance
           .collection('order')
           .doc(orderId);
 
       DocumentSnapshot orderData = await orderRef.get();
+      print(">>orderData :$orderData ");
 
       if (orderData.exists) {
         Map<String, dynamic> order = orderData.data() as Map<String, dynamic>;

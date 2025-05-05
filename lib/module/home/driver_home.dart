@@ -1,13 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:gherass/baseclass/basecontroller.dart';
+import 'package:gherass/module/home/home_controller.dart';
 import 'package:gherass/theme/app_theme.dart';
 import 'package:gherass/theme/styles.dart';
 import 'package:gherass/util/image_util.dart';
 
 import '../../helper/routes.dart';
 import '../../widgets/svg_icon_widget.dart';
-import 'home_controller.dart';
 
 class DriverHome extends StatelessWidget {
   const DriverHome({super.key});
@@ -15,137 +15,153 @@ class DriverHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var controller = Get.find<HomeViewController>();
-    return Obx(
-      () => Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "Home Page".tr,
-            style: Styles.boldTextView(20, AppTheme.black),
-          ),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
+
+    return Obx(()=>Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "Home Page".tr,
+          style: Styles.boldTextView(20, AppTheme.black),
         ),
-        body: SingleChildScrollView(
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await controller.getDatas();
+        },
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
           child: Container(
-            height: MediaQuery.of(context).size.height,
-            margin: EdgeInsets.only(left: 20, right: 20),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
-                Text(
-                  'Hello 👋\n${controller.userName.value}'.tr,
-                  style: Styles.boldTextView(16, AppTheme.black),
+
+                Obx(
+                  () => Text(
+                    'Hello 👋\n${controller.userName.value}'.tr,
+                    style: Styles.boldTextView(16, AppTheme.black),
+                  ),
                 ),
                 const SizedBox(height: 20),
+
                 Text(
                   'current Orders'.tr,
                   style: Styles.boldTextView(14, AppTheme.navGrey),
                 ),
                 const SizedBox(height: 10),
-                controller.showCurrentOrders.value
-                    ? ListView.builder(
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: controller.currentOrders.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        var item = controller.currentOrders[index];
-                        return InkWell(
-                          onTap: () async {
-                            // detail page navigation
-                            print(item.toString());
-                            await Get.toNamed(
-                              Routes.orderDetailDriverPage,
-                              arguments: [item],
-                            );
-                            // var controller = Get.find<OrderDetailMapController>();
-                            // controller.selectedOrder.assignAll(item);
-                            // print("assigned order");
-                            // print(controller.selectedOrder["orderID"]);
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: orderItem(item, controller),
+
+                /// currentOrders section
+                      controller.showCurrentOrders.value
+                          ? ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: controller.currentOrders.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              var item = controller.currentOrders[index];
+                              return InkWell(
+                                onTap: () async {
+                                  await Get.toNamed(
+                                    Routes.orderDetailDriverPage,
+                                    arguments: [item],
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: orderItem(item, controller),
+                                ),
+                              );
+                            },
+                          )
+                          : Align(
+                            alignment: Alignment.center,
+                            child: Text(
+                              controller.currentOrders.isEmpty
+                                  ? "Current Orders Empty !".tr
+                                  : "",
+                            ),
                           ),
-                        );
-                      },
-                    )
-                    : Container(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          controller.currentOrders.isEmpty
-                              ? "Orders Empty !".tr
-                              : "",
+
+
+                Visibility(
+                  visible:
+                      BaseController.storageService.getLogInType() == "driver"
+                          ? true
+                          : false,
+                  child: Row(
+                    children: [
+                      Text(
+                        'Previous Orders'.tr,
+                        style: Styles.boldTextView(14, AppTheme.navGrey),
+                      ),
+                      Obx(
+                        () => InkWell(
+                          onTap: () {
+                            controller.showPastOrders.value =
+                                !controller.showPastOrders.value;
+                          },
+                          child: Icon(
+                            !controller.showPastOrders.value
+                                ? Icons.keyboard_arrow_down
+                                : Icons.keyboard_arrow_up,
+                            size: 45,
+                            color: AppTheme.navGrey,
+                          ),
                         ),
                       ),
-                    ),
-                Row(
-                  children: [
-                    Text(
-                      'Previous Orders This Week'.tr,
-                      style: Styles.boldTextView(14, AppTheme.navGrey),
-                    ),
-                    InkWell(
-                      onTap: () {
-                        controller.showPastOrders.value =
-                            !controller.showPastOrders.value;
-                      },
-                      child: Icon(
-                        !controller.showPastOrders.value
-                            ? Icons.keyboard_arrow_down
-                            : Icons.keyboard_arrow_up,
-                        size: 45,
-                        color: AppTheme.navGrey,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
-                controller.showPastOrders.value
-                    ? Visibility(
-                      visible: controller.showPastOrders.value,
-                      child: Expanded(
-                        child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: controller.pastOrders.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            var item = controller.pastOrders[index];
-                            return InkWell(
-                              onTap: () async {
-                                // detail page navigation
-                                await Get.toNamed(
-                                  Routes.orderDetailDriverPage,
-                                  arguments: [item],
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: orderItem(item, controller),
+
+                ///  pastOrders section
+                Visibility(
+                  visible:
+                      BaseController.storageService.getLogInType() == "driver"
+                          ? true
+                          : false,
+                  child:
+                        controller.showPastOrders.value
+                            ? Visibility(
+                              visible: controller.showPastOrders.value,
+                              child: ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: controller.pastOrders.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  var item = controller.pastOrders[index];
+                                  return InkWell(
+                                    onTap: () async {
+                                      await Get.toNamed(
+                                        Routes.orderDetailDriverPage,
+                                        arguments: [item],
+                                      );
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: orderItem(item, controller),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                    : Container(
-                      child: Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          controller.pastOrders.isEmpty
-                              ? "Orders Empty !".tr
-                              : "",
-                        ),
-                      ),
-                    ),
+                            )
+                            : Align(
+                              alignment: Alignment.center,
+                              child: Text(
+                                controller.pastOrders.isEmpty
+                                    ? "Orders Empty !".tr
+                                    : "",
+                              ),
+                            ),
+                  ),
               ],
             ),
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget orderItem(Map<String, dynamic> order, HomeViewController controller) {
@@ -165,10 +181,10 @@ class DriverHome extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              customRow(title: "Order number: ".tr, subTitle: order['orderID']),
+              customRow(title: "Order number: ".tr, subTitle: order['orderID']??""),
               customRow(
                 title: "Address: ".tr,
-                subTitle: order['delivery_address']["address"],
+                subTitle: order['delivery_address']["address"]??"",
               ),
               customRow(
                 title: "Date: ".tr,

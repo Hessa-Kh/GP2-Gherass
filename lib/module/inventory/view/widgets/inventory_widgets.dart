@@ -221,9 +221,14 @@ class InventoryWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              Spacer(),
               Text("Proudct ".tr,style: Styles.boldTextView(12, AppTheme.hintDarkGray),),
+              Spacer(),
+              Spacer(),
               Text("Price ".tr,style: Styles.boldTextView(12, AppTheme.hintDarkGray),),
-              Text("Total Quantity  ".tr,style: Styles.boldTextView(12, AppTheme.hintDarkGray),),
+              Spacer(),
+              Text("Sold Qty  ".tr,style: Styles.boldTextView(12, AppTheme.hintDarkGray),),
+              SizedBox(width: 30,)
             ],
           ),
         ),
@@ -242,7 +247,7 @@ class InventoryWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 SizedBox(
-                  height: 50,
+                  // height: 50,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -315,9 +320,16 @@ class InventoryWidget {
                             ),
                           ),
                           SizedBox(width: 10),
-                          Text(
-                            farmData[index]['name'],
-                            style: Styles.mediumTextView(15, AppTheme.navGrey),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5.0,bottom: 5.0),
+                            child: SizedBox(
+                              child: Text(
+                                farmData[index]['name'],
+                                style: Styles.mediumTextView(15, AppTheme.navGrey),
+                                softWrap: true,
+                              ),
+                              width: MediaQuery.of(context).size.width/3,
+                            ),
                           ),
                         ],
                       ),
@@ -361,8 +373,8 @@ class InventoryWidget {
                               );
                             },
                             child: SizedBox(
-                              height: 100,
-                              width: 100,
+                              height: 50,
+                              width: 50,
                               child: Stack(
                                 children: [
                                   Center(child: Image.asset(ImageUtil.frame)),
